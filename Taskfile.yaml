@@ -157,7 +157,7 @@ tasks:
       - mkdir -p ./python-sdk/certs/ && cp ./hack/dev/certs/ca.cert ./python-sdk/certs/
   pre-commit-install:
     cmds:
-      - pip install pre-commit
+      - pip install pre-commit --break-system-packages
       - pre-commit install
   pre-commit-run:
     deps:
