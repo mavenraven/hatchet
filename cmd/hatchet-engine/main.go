@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -12,6 +13,7 @@ import (
 	"github.com/hatchet-dev/hatchet/cmd/hatchet-engine/engine"
 	"github.com/hatchet-dev/hatchet/internal/config/loader"
 	"github.com/hatchet-dev/hatchet/pkg/cmdutils"
+	_ "net/http/pprof"
 )
 
 var printVersion bool
@@ -37,6 +39,10 @@ var rootCmd = &cobra.Command{
 			defer cancel()
 			context = ctx
 		}
+
+		go func() {
+			log.Println(http.ListenAndServe("localhost:1776", nil))
+		}()
 
 		if err := engine.Run(context, cf); err != nil {
 			log.Printf("engine failure: %s", err.Error())

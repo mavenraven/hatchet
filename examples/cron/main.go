@@ -13,10 +13,16 @@ import (
 
 type printOutput struct{}
 
-func print(ctx context.Context) (result *printOutput, err error) {
-	fmt.Println("called print:print")
+func print(ctx context.Context, num int) (result *printOutput, err error) {
+	fmt.Printf("called print:print for %v\n", num)
 
 	return &printOutput{}, nil
+}
+
+func printWithNum(num int) func(ctx context.Context) (result *printOutput, err error) {
+	return func(ctx context.Context) (result *printOutput, err error) {
+		return print(ctx, num)
+	}
 }
 
 func main() {
@@ -42,10 +48,14 @@ func main() {
 		panic(err)
 	}
 
-	err = w.On(
-		worker.Cron("* * * * *"),
-		worker.Fn(print),
-	)
+	for i := 0; i < 5000; i++ {
+		j := i
+		err = w.On(
+			worker.Cron("* * * * *"),
+			worker.Fn(func(ctx context.Context) (result *printOutput, err error) {
+				return print(ctx, j)
+			}).SetName(fmt.Sprintf("chron%v", i)))
+	}
 
 	if err != nil {
 		panic(err)
