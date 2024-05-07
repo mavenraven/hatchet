@@ -1,6 +1,7 @@
 package prisma
 
 import (
+	"github.com/hatchet-dev/hatchet/internal/services/tenantlimiter"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -34,9 +35,10 @@ type apiRepository struct {
 type PrismaRepositoryOpt func(*PrismaRepositoryOpts)
 
 type PrismaRepositoryOpts struct {
-	v     validator.Validator
-	l     *zerolog.Logger
-	cache cache.Cacheable
+	v                validator.Validator
+	l                *zerolog.Logger
+	cache            cache.Cacheable
+	tenatRateLimiter tenantlimiter.TenantLimiter
 }
 
 func defaultPrismaRepositoryOpts() *PrismaRepositoryOpts {
@@ -60,6 +62,12 @@ func WithLogger(l *zerolog.Logger) PrismaRepositoryOpt {
 func WithCache(cache cache.Cacheable) PrismaRepositoryOpt {
 	return func(opts *PrismaRepositoryOpts) {
 		opts.cache = cache
+	}
+}
+
+func WithTenantRateLimiter(tenantRateLimiter tenantlimiter.TenantLimiter) PrismaRepositoryOpt {
+	return func(opts *PrismaRepositoryOpts) {
+		opts.tenatRateLimiter = tenantRateLimiter
 	}
 }
 

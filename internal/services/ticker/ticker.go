@@ -3,6 +3,7 @@ package ticker
 import (
 	"context"
 	"fmt"
+	"golang.org/x/time/rate"
 	"sync"
 	"time"
 
@@ -28,6 +29,7 @@ type TickerImpl struct {
 
 	crons              sync.Map
 	scheduledWorkflows sync.Map
+	rateLimiter        *rate.Limiter
 
 	dv datautils.DataDecoderValidator
 
