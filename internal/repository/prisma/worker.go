@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/hatchet-dev/hatchet/internal/services/tenantlimiter"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -128,7 +129,7 @@ type workerEngineRepository struct {
 	l       *zerolog.Logger
 }
 
-func NewWorkerEngineRepository(pool *pgxpool.Pool, v validator.Validator, l *zerolog.Logger) repository.WorkerEngineRepository {
+func NewWorkerEngineRepository(pool *pgxpool.Pool, v validator.Validator, l *zerolog.Logger, limiter tenantlimiter.TenantLimiter) repository.WorkerEngineRepository {
 	queries := dbsqlc.New()
 
 	return &workerEngineRepository{

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/hatchet-dev/hatchet/internal/services/tenantlimiter"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -194,7 +195,7 @@ type eventEngineRepository struct {
 	l       *zerolog.Logger
 }
 
-func NewEventEngineRepository(pool *pgxpool.Pool, v validator.Validator, l *zerolog.Logger) repository.EventEngineRepository {
+func NewEventEngineRepository(pool *pgxpool.Pool, v validator.Validator, l *zerolog.Logger, tenantRateLimiter tenantlimiter.TenantLimiter) repository.EventEngineRepository {
 	queries := dbsqlc.New()
 
 	return &eventEngineRepository{

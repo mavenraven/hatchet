@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/hatchet-dev/hatchet/internal/services/tenantlimiter"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -22,7 +23,7 @@ type streamEventEngineRepository struct {
 	l       *zerolog.Logger
 }
 
-func NewStreamEventsEngineRepository(pool *pgxpool.Pool, v validator.Validator, l *zerolog.Logger) repository.StreamEventsEngineRepository {
+func NewStreamEventsEngineRepository(pool *pgxpool.Pool, v validator.Validator, l *zerolog.Logger, limiter tenantlimiter.TenantLimiter) repository.StreamEventsEngineRepository {
 	queries := dbsqlc.New()
 
 	return &streamEventEngineRepository{

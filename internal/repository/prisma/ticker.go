@@ -2,6 +2,7 @@ package prisma
 
 import (
 	"context"
+	"github.com/hatchet-dev/hatchet/internal/services/tenantlimiter"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog"
@@ -19,7 +20,7 @@ type tickerRepository struct {
 	l       *zerolog.Logger
 }
 
-func NewTickerRepository(pool *pgxpool.Pool, v validator.Validator, l *zerolog.Logger) repository.TickerEngineRepository {
+func NewTickerRepository(pool *pgxpool.Pool, v validator.Validator, l *zerolog.Logger, limiter tenantlimiter.TenantLimiter) repository.TickerEngineRepository {
 	queries := dbsqlc.New()
 
 	return &tickerRepository{

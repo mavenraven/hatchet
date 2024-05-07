@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/hatchet-dev/hatchet/internal/services/tenantlimiter"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -287,7 +288,7 @@ type workflowEngineRepository struct {
 	l       *zerolog.Logger
 }
 
-func NewWorkflowEngineRepository(pool *pgxpool.Pool, v validator.Validator, l *zerolog.Logger) repository.WorkflowEngineRepository {
+func NewWorkflowEngineRepository(pool *pgxpool.Pool, v validator.Validator, l *zerolog.Logger, limiter tenantlimiter.TenantLimiter) repository.WorkflowEngineRepository {
 	queries := dbsqlc.New()
 
 	return &workflowEngineRepository{

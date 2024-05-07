@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/hatchet-dev/hatchet/internal/services/tenantlimiter"
 	"math/rand"
 	"strings"
 	"time"
@@ -80,7 +81,7 @@ type stepRunEngineRepository struct {
 	queries *dbsqlc.Queries
 }
 
-func NewStepRunEngineRepository(pool *pgxpool.Pool, v validator.Validator, l *zerolog.Logger) repository.StepRunEngineRepository {
+func NewStepRunEngineRepository(pool *pgxpool.Pool, v validator.Validator, l *zerolog.Logger, limiter tenantlimiter.TenantLimiter) repository.StepRunEngineRepository {
 	queries := dbsqlc.New()
 
 	return &stepRunEngineRepository{

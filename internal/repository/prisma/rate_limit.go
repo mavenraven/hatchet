@@ -3,6 +3,7 @@ package prisma
 import (
 	"context"
 	"fmt"
+	"github.com/hatchet-dev/hatchet/internal/services/tenantlimiter"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog"
@@ -20,7 +21,7 @@ type rateLimitEngineRepository struct {
 	l       *zerolog.Logger
 }
 
-func NewRateLimitEngineRepository(pool *pgxpool.Pool, v validator.Validator, l *zerolog.Logger) repository.RateLimitEngineRepository {
+func NewRateLimitEngineRepository(pool *pgxpool.Pool, v validator.Validator, l *zerolog.Logger, limiter tenantlimiter.TenantLimiter) repository.RateLimitEngineRepository {
 	queries := dbsqlc.New()
 
 	return &rateLimitEngineRepository{

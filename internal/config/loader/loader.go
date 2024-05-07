@@ -157,8 +157,6 @@ func GetDatabaseConfigFromConfigFile(cf *database.ConfigFile) (res *database.Con
 
 	ch := cache.New(cf.CacheDuration)
 
-	ten
-
 	return &database.Config{
 		Disconnect: func() error {
 			ch.Stop()

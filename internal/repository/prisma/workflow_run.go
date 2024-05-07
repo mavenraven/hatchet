@@ -3,6 +3,7 @@ package prisma
 import (
 	"context"
 	"errors"
+	"github.com/hatchet-dev/hatchet/internal/services/tenantlimiter"
 	"time"
 
 	"github.com/google/uuid"
@@ -135,7 +136,7 @@ type workflowRunEngineRepository struct {
 	l       *zerolog.Logger
 }
 
-func NewWorkflowRunEngineRepository(pool *pgxpool.Pool, v validator.Validator, l *zerolog.Logger) repository.WorkflowRunEngineRepository {
+func NewWorkflowRunEngineRepository(pool *pgxpool.Pool, v validator.Validator, l *zerolog.Logger, limiter tenantlimiter.TenantLimiter) repository.WorkflowRunEngineRepository {
 	queries := dbsqlc.New()
 
 	return &workflowRunEngineRepository{

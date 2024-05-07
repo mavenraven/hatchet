@@ -2,6 +2,7 @@ package prisma
 
 import (
 	"context"
+	"github.com/hatchet-dev/hatchet/internal/services/tenantlimiter"
 
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -45,7 +46,7 @@ type jobRunEngineRepository struct {
 	l       *zerolog.Logger
 }
 
-func NewJobRunEngineRepository(pool *pgxpool.Pool, v validator.Validator, l *zerolog.Logger) repository.JobRunEngineRepository {
+func NewJobRunEngineRepository(pool *pgxpool.Pool, v validator.Validator, l *zerolog.Logger, limiter tenantlimiter.TenantLimiter) repository.JobRunEngineRepository {
 	queries := dbsqlc.New()
 
 	return &jobRunEngineRepository{
