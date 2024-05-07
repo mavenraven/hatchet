@@ -40,6 +40,7 @@ func NewEventAPIRepository(client *db.PrismaClient, pool *pgxpool.Pool, v valida
 }
 
 func (r *eventAPIRepository) ListEvents(tenantId string, opts *repository.ListEventOpts) (*repository.ListEventResult, error) {
+
 	if err := r.v.Validate(opts); err != nil {
 		return nil, err
 	}
@@ -189,24 +190,31 @@ func (r *eventAPIRepository) ListEventsById(tenantId string, ids []string) ([]db
 }
 
 type eventEngineRepository struct {
-	pool    *pgxpool.Pool
-	v       validator.Validator
-	queries *dbsqlc.Queries
-	l       *zerolog.Logger
+	pool              *pgxpool.Pool
+	v                 validator.Validator
+	queries           *dbsqlc.Queries
+	l                 *zerolog.Logger
+	tenantRateLimiter tenantlimiter.TenantLimiter
 }
 
 func NewEventEngineRepository(pool *pgxpool.Pool, v validator.Validator, l *zerolog.Logger, tenantRateLimiter tenantlimiter.TenantLimiter) repository.EventEngineRepository {
 	queries := dbsqlc.New()
 
 	return &eventEngineRepository{
-		pool:    pool,
-		v:       v,
-		queries: queries,
-		l:       l,
+		pool:              pool,
+		v:                 v,
+		queries:           queries,
+		l:                 l,
+		tenantRateLimiter: tenantRateLimiter,
 	}
 }
 
 func (r *eventEngineRepository) GetEventForEngine(ctx context.Context, tenantId, id string) (*dbsqlc.Event, error) {
+	err := r.tenantRateLimiter.Wait(ctx, tenantId)
+	if err != nil {
+		return nil, err
+	}
+
 	return r.queries.GetEventForEngine(ctx, r.pool, sqlchelpers.UUIDFromStr(id))
 }
 
@@ -227,6 +235,11 @@ func (r *eventEngineRepository) CreateEvent(ctx context.Context, opts *repositor
 
 	if opts.ReplayedEvent != nil {
 		createParams.ReplayedFromId = sqlchelpers.UUIDFromStr(*opts.ReplayedEvent)
+	}
+
+	err := r.tenantRateLimiter.Wait(ctx, opts.TenantId)
+	if err != nil {
+		return nil, err
 	}
 
 	e, err := r.queries.CreateEvent(
@@ -252,6 +265,11 @@ func (r *eventEngineRepository) ListEventsByIds(ctx context.Context, tenantId st
 	}
 
 	pgTenantId := sqlchelpers.UUIDFromStr(tenantId)
+
+	err := r.tenantRateLimiter.Wait(ctx, tenantId)
+	if err != nil {
+		return nil, err
+	}
 
 	return r.queries.ListEventsByIDs(ctx, r.pool, dbsqlc.ListEventsByIDsParams{
 		Tenantid: pgTenantId,

@@ -36,7 +36,7 @@ func NewJobRunAPIRepository(client *db.PrismaClient, pool *pgxpool.Pool, v valid
 }
 
 func (j *jobRunAPIRepository) SetJobRunStatusRunning(tenantId, jobRunId string) error {
-	return setJobRunStatusRunning(context.Background(), j.pool, j.queries, j.l, tenantId, jobRunId)
+	return setJobRunStatusRunning(context.Background(), j.pool, j.queries, j.l, tenantId, jobRunId, nil)
 }
 
 type jobRunEngineRepository struct {
@@ -44,6 +44,7 @@ type jobRunEngineRepository struct {
 	v       validator.Validator
 	queries *dbsqlc.Queries
 	l       *zerolog.Logger
+	limiter tenantlimiter.TenantLimiter
 }
 
 func NewJobRunEngineRepository(pool *pgxpool.Pool, v validator.Validator, l *zerolog.Logger, limiter tenantlimiter.TenantLimiter) repository.JobRunEngineRepository {
@@ -54,18 +55,24 @@ func NewJobRunEngineRepository(pool *pgxpool.Pool, v validator.Validator, l *zer
 		pool:    pool,
 		queries: queries,
 		l:       l,
+		limiter: limiter,
 	}
 }
 
 func (j *jobRunEngineRepository) SetJobRunStatusRunning(ctx context.Context, tenantId, jobRunId string) error {
-	return setJobRunStatusRunning(ctx, j.pool, j.queries, j.l, tenantId, jobRunId)
+	return setJobRunStatusRunning(ctx, j.pool, j.queries, j.l, tenantId, jobRunId, j.limiter)
 }
 
 func (j *jobRunEngineRepository) ListJobRunsForWorkflowRun(ctx context.Context, tenantId, workflowRunId string) ([]pgtype.UUID, error) {
+	err := j.limiter.Wait(ctx, tenantId)
+	if err != nil {
+		return nil, err
+	}
+
 	return j.queries.ListJobRunsForWorkflowRun(ctx, j.pool, sqlchelpers.UUIDFromStr(workflowRunId))
 }
 
-func setJobRunStatusRunning(ctx context.Context, pool *pgxpool.Pool, queries *dbsqlc.Queries, l *zerolog.Logger, tenantId, jobRunId string) error {
+func setJobRunStatusRunning(ctx context.Context, pool *pgxpool.Pool, queries *dbsqlc.Queries, l *zerolog.Logger, tenantId, jobRunId string, limiter tenantlimiter.TenantLimiter) error {
 	tx, err := pool.Begin(ctx)
 
 	if err != nil {
@@ -73,6 +80,14 @@ func setJobRunStatusRunning(ctx context.Context, pool *pgxpool.Pool, queries *db
 	}
 
 	defer deferRollback(context.Background(), l, tx.Rollback)
+
+	//FIXME: clean this up
+	if limiter != nil {
+		err = limiter.Wait(ctx, tenantId)
+		if err != nil {
+			return err
+		}
+	}
 
 	jobRun, err := queries.UpdateJobRunStatus(context.Background(), tx, dbsqlc.UpdateJobRunStatusParams{
 		ID:       sqlchelpers.UUIDFromStr(jobRunId),
@@ -82,6 +97,13 @@ func setJobRunStatusRunning(ctx context.Context, pool *pgxpool.Pool, queries *db
 
 	if err != nil {
 		return err
+	}
+
+	if limiter != nil {
+		err = limiter.Wait(ctx, tenantId)
+		if err != nil {
+			return err
+		}
 	}
 
 	_, err = queries.UpdateWorkflowRun(

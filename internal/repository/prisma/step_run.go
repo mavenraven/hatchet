@@ -79,6 +79,7 @@ type stepRunEngineRepository struct {
 	v       validator.Validator
 	l       *zerolog.Logger
 	queries *dbsqlc.Queries
+	limiter tenantlimiter.TenantLimiter
 }
 
 func NewStepRunEngineRepository(pool *pgxpool.Pool, v validator.Validator, l *zerolog.Logger, limiter tenantlimiter.TenantLimiter) repository.StepRunEngineRepository {
@@ -89,6 +90,7 @@ func NewStepRunEngineRepository(pool *pgxpool.Pool, v validator.Validator, l *ze
 		v:       v,
 		l:       l,
 		queries: queries,
+		limiter: limiter,
 	}
 }
 
@@ -156,6 +158,11 @@ func (s *stepRunEngineRepository) ListStepRuns(ctx context.Context, tenantId str
 		for i, id := range opts.WorkflowRunIds {
 			listOpts.WorkflowRunIds[i] = sqlchelpers.UUIDFromStr(id)
 		}
+	}
+
+	err = s.limiter.Wait(ctx, tenantId)
+	if err != nil {
+		return nil, err
 	}
 
 	srs, err := s.queries.ListStepRuns(ctx, tx, listOpts)
