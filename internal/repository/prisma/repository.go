@@ -270,13 +270,14 @@ func NewEngineRepository(pool *pgxpool.Pool, fs ...PrismaRepositoryOpt) reposito
 		getGroupKeyRun: NewGetGroupKeyRunRepository(pool, opts.v, opts.l, opts.tenatRateLimiter),
 		jobRun:         NewJobRunEngineRepository(pool, opts.v, opts.l, opts.tenatRateLimiter),
 		stepRun:        NewStepRunEngineRepository(pool, opts.v, opts.l, opts.tenatRateLimiter),
-		tenant:         NewTenantEngineRepository(pool, opts.v, opts.l, opts.cache),
-		ticker:         NewTickerRepository(pool, opts.v, opts.l, opts.tenatRateLimiter),
-		worker:         NewWorkerEngineRepository(pool, opts.v, opts.l, opts.tenatRateLimiter),
-		workflow:       NewWorkflowEngineRepository(pool, opts.v, opts.l, opts.tenatRateLimiter),
-		workflowRun:    NewWorkflowRunEngineRepository(pool, opts.v, opts.l, opts.tenatRateLimiter),
-		streamEvent:    NewStreamEventsEngineRepository(pool, opts.v, opts.l, opts.tenatRateLimiter),
-		log:            NewLogEngineRepository(pool, opts.v, opts.l, opts.tenatRateLimiter),
-		rateLimit:      NewRateLimitEngineRepository(pool, opts.v, opts.l, opts.tenatRateLimiter),
+		//start here tommorow
+		tenant:      NewTenantEngineRepository(pool, opts.v, opts.l, opts.cache),
+		ticker:      NewTickerRepository(pool, opts.v, opts.l, opts.tenatRateLimiter),
+		worker:      NewWorkerEngineRepository(pool, opts.v, opts.l, opts.tenatRateLimiter),
+		workflow:    NewWorkflowEngineRepository(pool, opts.v, opts.l, opts.tenatRateLimiter),
+		workflowRun: NewWorkflowRunEngineRepository(pool, opts.v, opts.l, opts.tenatRateLimiter),
+		streamEvent: NewStreamEventsEngineRepository(pool, opts.v, opts.l, opts.tenatRateLimiter),
+		log:         NewLogEngineRepository(pool, opts.v, opts.l, opts.tenatRateLimiter),
+		rateLimit:   NewRateLimitEngineRepository(pool, opts.v, opts.l, opts.tenatRateLimiter),
 	}
 }
